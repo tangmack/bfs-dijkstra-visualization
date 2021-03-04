@@ -1,54 +1,57 @@
 import numpy as np
 import cv2
-world_map = np.zeros((300,400),dtype=np.uint8)
+import generate_map
+from collections import deque
 
-def convert_row_to_y(row, img_height):
-    return img_height - row
 
-def convert_y_to_row(y, img_height):
-    return img_height - y
+world_map = generate_map.create_map()
 
-def convert_col_to_x(col):
-    return col
+# world_viz = world_map.copy() # visualization of world
+world_viz = cv2.cvtColor(world_map, cv2.COLOR_GRAY2BGR)
 
-# lines in y = mx + b format
-L = np.array([[124.3830,	-1.468345131,	35.5285,	176.5511],
-                 [124.3830,	0.740180419,	35.5285,	98.0855],
-                 [194.0365,	0.700207991,	170.8728,	74.3900],
-                 [194.0365,	-1.428147722,	170.8728,	438.0681],
-                 [105.4264,	1,	285.5736,	-180.1472],
-                 [137.2948,	-0.298786326,	351.0415,	242.1812],
-                 [137.2948,	1.124925401,	351.0415,	-257.6007],
-                 [116.0330,	1,	381.0330,	-265.0000],
-                 [105.4264,	-1,	285.5736,	391.0000]])
+# cv2.imshow("world_map", world_map)
+# cv2.waitKey(0)
 
-m = L[:,1]
-b = L[:,3]
+# action_set = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
+action_set = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
+action_set = list(map(lambda x: np.array(x), action_set))
 
-img_height = world_map.shape[0]
+robot_start = np.array([30,30])
+goal_position = np.array([290,390])
 
-for row in range(0, world_map.shape[0]):
-    for col in range(0, world_map.shape[1]):
-        x = col
-        y = convert_row_to_y(row, world_map.shape[0])
+q = deque()
+q.append(tuple(robot_start))
 
-        if (y > m[0]*x + b[0]) and (y < m[1]*x + b[1]) and (y > m[2]*x + b[2]) and (y < m[3]*x + b[3]): # Rectangle
-            world_map[convert_y_to_row(y,img_height),x] = 255
+past_nodes = set()
+goal_found = False
 
-        elif (x-90)**2 + (y - 70)**2 < 35**2: # Circle
-            world_map[convert_y_to_row(y, img_height), x] = 255
+max_row_index = world_map.shape[0] - 1
+max_col_index = world_map.shape[1] - 1
 
-        elif y < 280 and y > 230 and x > 200 and ( x<210 or (y>270 and x<230) or (y<240 and x<230) ): # Channel shape
-            world_map[convert_y_to_row(y, img_height), x] = 255
+while(len(q) > 0):
+    if goal_found:
+        break
 
-        elif (x-246)**2/60**2 + (y-145)**2/30**2 < 1: # Ellipse
-            world_map[convert_y_to_row(y, img_height), x] = 255
+    world_viz[q[0]] = (0,0,255)
+    cv2.imshow("world_viz",world_viz)
+    cv2.waitKey(1)
+    for action in action_set:
+        current_position = tuple(np.array(q[0]) + action)
+        if current_position[0]>0 and  current_position[0]<max_row_index and current_position[1]>0 and current_position[1]<max_col_index > 0: # must be within map
+            if (current_position not in q) and (current_position not in past_nodes):
+                if world_map[current_position] == 0:
+                    # print("free space found")
+                    q.append(current_position)
+                elif world_map[tuple(current_position)] == 255:
+                    past_nodes.add(current_position)
+                elif world_map[tuple(current_position)] == 150:
+                    goal_found = True
+                    break
 
-        elif (y < m[4]*x + b[4]) and (y < m[5]*x + b[5]) and (y > m[6]*x + b[6]) and (y > m[8]*x + b[8]) or (y < m[6]*x + b[6]) and (x<381.0330) and (y > m[7]*x + b[7]) and (y > m[8]*x + b[8]): # Polyhedron
-            world_map[convert_y_to_row(y, img_height), x] = 255
+    past_nodes.add(q[0])
+    world_viz[q[0]] = (0,0,0)
+    q.popleft()
 
-cv2.imshow("world_map", world_map)
-cv2.waitKey(0)
 
 
 pass
