@@ -32,11 +32,23 @@ for row in range(0, world_map.shape[0]):
         x = col
         y = convert_row_to_y(row, world_map.shape[0])
 
-        if (y > m[0]*x + b[0]) and (y < m[1]*x + b[1]) and (y > m[2]*x + b[2]) and (y < m[3]*x + b[3]):
+        if (y > m[0]*x + b[0]) and (y < m[1]*x + b[1]) and (y > m[2]*x + b[2]) and (y < m[3]*x + b[3]): # Rectangle
             world_map[convert_y_to_row(y,img_height),x] = 255
+
+        elif (x-90)**2 + (y - 70)**2 < 35**2: # Circle
+            world_map[convert_y_to_row(y, img_height), x] = 255
+
+        elif y < 280 and y > 230 and x > 200 and ( x<210 or (y>270 and x<230) or (y<240 and x<230) ): # Channel shape
+            world_map[convert_y_to_row(y, img_height), x] = 255
+
+        elif (x-246)**2/60**2 + (y-145)**2/30**2 < 1: # Ellipse
+            world_map[convert_y_to_row(y, img_height), x] = 255
+
+        elif (y < m[4]*x + b[4]) and (y < m[5]*x + b[5]) and (y > m[6]*x + b[6]) and (y > m[8]*x + b[8]) or (y < m[6]*x + b[6]) and (x<381.0330) and (y > m[7]*x + b[7]) and (y > m[8]*x + b[8]): # Polyhedron
+            world_map[convert_y_to_row(y, img_height), x] = 255
 
 cv2.imshow("world_map", world_map)
 cv2.waitKey(0)
 
 
-
+pass
