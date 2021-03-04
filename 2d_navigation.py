@@ -4,20 +4,22 @@ import generate_map
 from collections import deque
 
 
+# Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+out = cv2.VideoWriter('output.mp4',0x7634706d , 800.0, (400,300))
+
+
 world_map = generate_map.create_map()
 
-# world_viz = world_map.copy() # visualization of world
-
-# cv2.imshow("world_map", world_map)
-# cv2.waitKey(0)
 
 
-# action_set = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 action_set = [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]
 action_set = list(map(lambda x: np.array(x), action_set))
 
 robot_start = np.array([30,30])
-goal_position = np.array([46,213])
+# goal_position = np.array([50,50])
+goal_position = np.array([165,389])
+# goal_position = np.array([46,213])
 world_map[goal_position[0],goal_position[1]] = 200
 
 world_viz = cv2.cvtColor(world_map, cv2.COLOR_GRAY2BGR)
@@ -38,6 +40,7 @@ while(len(q) > 0):
         break
 
     world_viz[q[0]] = (0,0,255)
+    out.write(world_viz)
     cv2.imshow("world_viz",world_viz)
     cv2.waitKey(1)
     for action in action_set:
@@ -71,8 +74,12 @@ while(start_reached == False):
     if node == tuple(robot_start):
         start_reached = True
 
+for f in range(0,200): # repeat 10 frames worth of showing the solution path at end
+    cv2.imshow("world_viz", world_viz)
+    out.write(world_viz)
+
 cv2.imshow("world_viz", world_viz)
-cv2.waitKey(0)
+cv2.waitKey(1)
 
 
 
