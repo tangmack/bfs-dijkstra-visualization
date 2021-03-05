@@ -116,7 +116,7 @@ for f in range(0,200): # repeat 200 frames worth of showing the solution path at
     out.write(world_viz)
 
 cv2.imshow("world_viz", world_viz)
-cv2.waitKey(0)
+cv2.waitKey(1)
 
 
 
